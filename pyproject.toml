@@ -26,3 +26,6 @@ anymal_c_ball_balance = "anymal_c_ball_balance"
 
 [tool.uv.sources]
 anymal-c-velocity = { git = "https://github.com/IamPhytan/anymal_c_velocity.git", branch = "fix/upgrade-mjlab" }
+
+[tool.pyright]
+stubPath = "./typings"
