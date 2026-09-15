@@ -2,10 +2,14 @@ from pathlib import Path
 
 import mujoco
 
-BALL_RADIUS = 0.40
+BALL_RADIUS = 0.90
 BALL_MASS = 15.0
 BALL_FRICTION = (1.2, 0.01, 0.001)
 BALL_HOLD_LEVELS = (1.0, 0.5, 0.2, 0.05, 0.0)
+
+SOURCE_MESH_RADIUS = 0.1207
+BALL_VISUAL_RADIUS = BALL_RADIUS + 0.002
+BALL_MESH_SCALE = BALL_VISUAL_RADIUS / SOURCE_MESH_RADIUS
 
 _ASSETS = Path(__file__).resolve().parent / "assets" / "basketball"
 
@@ -39,6 +43,7 @@ def get_ball_spec() -> mujoco.MjSpec:
     mesh = spec.add_mesh(
         name="basketball_mesh",
         file=str(_ASSETS / "basketball.obj"),
+        scale=[BALL_MESH_SCALE] * 3,
     )
 
     body.add_freejoint()

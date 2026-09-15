@@ -45,9 +45,20 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     twist = cfg.commands["twist"]
 
     twist.heading_command = False
-    twist.ranges.lin_vel_x = (0.0, 0.0)
-    twist.ranges.lin_vel_y = (0.0, 0.0)
-    twist.ranges.ang_vel_z = (0.0, 0.0)
+    twist.ranges.heading = None
+
+    # Non-zero ranges required by the Viser command GUI.
+    twist.ranges.lin_vel_x = (-0.1, 0.1)
+    twist.ranges.lin_vel_y = (-0.1, 0.1)
+    twist.ranges.ang_vel_z = (-0.1, 0.1)
+
+    # But every training environment receives the zero command.
+    twist.rel_standing_envs = 1.0
+
+    # Disable the other command modes.
+    twist.rel_world_envs = 0.0
+    twist.rel_forward_envs = 0.0
+    twist.init_velocity_prob = 0.0
 
     # -----------------------------------------------------------------------
     # Observations
