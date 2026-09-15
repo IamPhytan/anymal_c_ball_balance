@@ -148,6 +148,16 @@ def feet_touched_ground(
     return found.reshape(found.shape[0], -1).any(dim=-1)
 
 
+def nonfoot_ball_contact(
+    env: ManagerBasedRlEnv,
+    sensor_name: str,
+) -> torch.Tensor:
+    found = env.scene.sensors[sensor_name].data.found
+    assert found is not None
+
+    return (found > 0).any(dim=-1)
+
+
 # ---------------------------------------------------------------------------
 # Reset
 # ---------------------------------------------------------------------------

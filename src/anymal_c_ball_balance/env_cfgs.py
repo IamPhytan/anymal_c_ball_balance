@@ -9,6 +9,7 @@ from mjlab.managers.observation_manager import ObservationTermCfg
 from mjlab.managers.reward_manager import RewardTermCfg
 from mjlab.managers.scene_entity_config import SceneEntityCfg
 from mjlab.managers.termination_manager import TerminationTermCfg
+from mjlab.sensor import ContactMatch, ContactSensorCfg
 from mjlab.tasks.velocity import mdp
 
 from . import mdp
@@ -77,6 +78,28 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         sensor
         for sensor in (cfg.scene.sensors or ())
         if sensor.name != "foot_height_scan"
+    )
+
+    nonfoot_ball_contact = ContactSensorCfg(
+        name="nonfoot_ball_contact",
+        primary=ContactMatch(
+            mode="geom",
+            entity="robot",
+            pattern=r".*_collision.*",
+        ),
+        secondary=ContactMatch(
+            mode="geom",
+            entity="ball",
+            pattern="ball_sphere",
+        ),
+        fields=("found",),
+        reduce="none",
+        num_slots=1,
+    )
+
+    cfg.scene.sensors = (
+        *(cfg.scene.sensors or ()),
+        nonfoot_ball_contact,
     )
 
     # -----------------------------------------------------------------------
@@ -182,6 +205,13 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         func=mdp.feet_touched_ground,
         params={
             "sensor_name": "feet_ground_contact",
+        },
+    )
+
+    cfg.terminations["nonfoot_ball_contact"] = TerminationTermCfg(
+        func=mdp.nonfoot_ball_contact,
+        params={
+            "sensor_name": "nonfoot_ball_contact",
         },
     )
 
