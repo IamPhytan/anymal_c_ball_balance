@@ -5,6 +5,7 @@ from anymal_c_velocity.env_cfgs import anymal_c_flat_env_cfg
 from mjlab.entity import EntityCfg
 from mjlab.envs import ManagerBasedRlEnvCfg
 from mjlab.managers.event_manager import EventTermCfg
+from mjlab.managers.metrics_manager import MetricsTermCfg
 from mjlab.managers.observation_manager import ObservationTermCfg
 from mjlab.managers.reward_manager import RewardTermCfg
 from mjlab.managers.scene_entity_config import SceneEntityCfg
@@ -35,7 +36,7 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     cfg.scene.entities["ball"] = EntityCfg(spec_fn=get_ball_spec)
 
     cfg.scene.env_spacing = max(cfg.scene.env_spacing, 3.0)
-    cfg.episode_length_s = 10.0
+    cfg.episode_length_s = 60.0 if play else 10.0
     cfg.sim.nconmax = max(cfg.sim.nconmax or 0, 200)
 
     # -----------------------------------------------------------------------
@@ -49,17 +50,20 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     twist.ranges.heading = None
 
     # Non-zero ranges required by the Viser command GUI.
-    twist.ranges.lin_vel_x = (-0.1, 0.1)
-    twist.ranges.lin_vel_y = (-0.1, 0.1)
-    twist.ranges.ang_vel_z = (-0.1, 0.1)
+    twist.ranges.lin_vel_x = (-0.15, 0.15)
+    twist.ranges.lin_vel_y = (-0.10, 0.10)
+    twist.ranges.ang_vel_z = (-0.10, 0.10)
 
-    # But every training environment receives the zero command.
-    twist.rel_standing_envs = 1.0
+    twist.rel_standing_envs = 0.5
 
     # Disable the other command modes.
     twist.rel_world_envs = 0.0
     twist.rel_forward_envs = 0.0
     twist.init_velocity_prob = 0.0
+
+    twist.resampling_time_range = (4.0, 6.0)
+
+    cfg.curriculum.pop("command_vel", None)
 
     # -----------------------------------------------------------------------
     # Observations
@@ -107,8 +111,6 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     # -----------------------------------------------------------------------
 
     for reward_name in (
-        "track_linear_velocity",
-        "track_angular_velocity",
         "air_time",
         "foot_clearance",
         "foot_swing_height",
@@ -116,6 +118,13 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
         "soft_landing",
     ):
         cfg.rewards.pop(reward_name, None)
+
+    # Velocity tracking
+    cfg.rewards["track_linear_velocity"].weight = 2.0
+    cfg.rewards["track_linear_velocity"].params["std"] = 0.20
+
+    cfg.rewards["track_angular_velocity"].weight = 0.5
+    cfg.rewards["track_angular_velocity"].params["std"] = 0.5
 
     # Keep the useful regularizers from the velocity task:
     #
@@ -128,7 +137,7 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
     cfg.rewards["upright"].weight = 2.0
     cfg.rewards["body_ang_vel"].weight = -0.05
-    cfg.rewards["angular_momentum"].weight = -0.02
+    cfg.rewards["angular_momentum"].weight = 0.0
 
     # -----------------------------------------------------------------------
     # Ball rewards
@@ -137,8 +146,8 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     # Rewards
     cfg.rewards["ball_centered"] = RewardTermCfg(
         func=mdp.ball_centered,
-        weight=3.0,
-        params={"std": 0.15},
+        weight=2.0,
+        params={"std": 0.25},
     )
 
     cfg.rewards["feet_on_ball"] = RewardTermCfg(
@@ -163,8 +172,20 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
     cfg.rewards["ball_speed"] = RewardTermCfg(
         func=mdp.ball_speed_l2,
-        weight=-0.05,
+        weight=0.0,
     )
+
+    # -----------------------------------------------------------------------
+    # Metrics
+    # -----------------------------------------------------------------------
+
+    cfg.metrics["velocity_tracking_error_xy"] = MetricsTermCfg(
+        func=mdp.velocity_tracking_error_xy
+    )
+
+    cfg.metrics["yaw_tracking_error"] = MetricsTermCfg(func=mdp.yaw_tracking_error)
+
+    cfg.metrics["ball_center_error"] = MetricsTermCfg(func=mdp.ball_center_error)
 
     # -----------------------------------------------------------------------
     # Reset

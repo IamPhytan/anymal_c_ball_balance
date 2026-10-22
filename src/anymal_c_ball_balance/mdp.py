@@ -37,6 +37,42 @@ def ball_ang_vel_w(env: ManagerBasedRlEnv) -> torch.Tensor:
 
 
 # ---------------------------------------------------------------------------
+# Metrics
+# ---------------------------------------------------------------------------
+
+
+def velocity_tracking_error_xy(env: ManagerBasedRlEnv) -> torch.Tensor:
+    robot = env.scene["robot"]
+
+    command = env.command_manager.get_command("twist")
+    assert command is not None
+    velocity_xy = robot.data.root_link_lin_vel_b[:, :2]
+    command_xy = command[:, :2]
+    return torch.linalg.vector_norm(command_xy - velocity_xy, dim=-1)
+
+
+def yaw_tracking_error(env: ManagerBasedRlEnv) -> torch.Tensor:
+    robot = env.scene["robot"]
+
+    command = env.command_manager.get_command("twist")
+    assert command is not None
+    yaw = robot.data.root_link_ang_vel_b[:, 2]
+    cmd_yaw = command[:, 2]
+    return torch.abs(cmd_yaw - yaw)
+
+
+def ball_center_error(env: ManagerBasedRlEnv) -> torch.Tensor:
+    robot = env.scene["robot"]
+    ball = env.scene["ball"]
+
+    robot_pxy = robot.data.root_link_pos_w[:, :2]
+    ball_pxy = ball.data.root_link_pos_w[:, :2]
+    error = robot_pxy - ball_pxy
+
+    return torch.linalg.vector_norm(error, dim=-1)
+
+
+# ---------------------------------------------------------------------------
 # Rewards
 # ---------------------------------------------------------------------------
 
