@@ -1,6 +1,5 @@
 """ANYbotics ANYmal C velocity environment configurations."""
 
-import mujoco
 from anymal_c_velocity.env_cfgs import anymal_c_flat_env_cfg
 from mjlab.entity import EntityCfg
 from mjlab.envs import ManagerBasedRlEnvCfg
@@ -11,7 +10,6 @@ from mjlab.managers.reward_manager import RewardTermCfg
 from mjlab.managers.scene_entity_config import SceneEntityCfg
 from mjlab.managers.termination_manager import TerminationTermCfg
 from mjlab.sensor import ContactMatch, ContactSensorCfg
-from mjlab.tasks.velocity import mdp
 
 from . import mdp
 from .ball import BALL_RADIUS, get_ball_spec
@@ -71,9 +69,9 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     for group_name in ("actor", "critic"):
         terms = cfg.observations[group_name].terms
 
-        terms["ball_pos_rel"] = ObservationTermCfg(func=mdp.ball_pos_rel_w)
-        terms["ball_lin_vel"] = ObservationTermCfg(func=mdp.ball_lin_vel_w)
-        terms["ball_ang_vel"] = ObservationTermCfg(func=mdp.ball_ang_vel_w)
+        terms["ball_pos_rel"] = ObservationTermCfg(func=mdp.ball_pos_rel_b)
+        terms["ball_lin_vel"] = ObservationTermCfg(func=mdp.ball_lin_vel_b)
+        terms["ball_ang_vel"] = ObservationTermCfg(func=mdp.ball_ang_vel_b)
 
     # Terrain-height information is not useful for the balancing task.
     cfg.observations["critic"].terms.pop("foot_height", None)

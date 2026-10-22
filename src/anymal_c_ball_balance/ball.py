@@ -24,7 +24,7 @@ def get_ball_spec() -> mujoco.MjSpec:
     )
 
     # Texture
-    tex = spec.add_texture(
+    spec.add_texture(
         name="basketball_tex",
         type=mujoco.mjtTexture.mjTEXTURE_2D,
         file=str(_ASSETS / "basketball.png"),
@@ -40,7 +40,7 @@ def get_ball_spec() -> mujoco.MjSpec:
     mat.reflectance = 0.0
 
     # Mesh
-    mesh = spec.add_mesh(
+    spec.add_mesh(
         name="basketball_mesh",
         file=str(_ASSETS / "basketball.obj"),
         scale=[BALL_MESH_SCALE] * 3,

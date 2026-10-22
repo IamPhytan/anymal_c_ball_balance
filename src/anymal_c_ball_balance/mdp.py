@@ -4,12 +4,9 @@ import math
 from typing import TYPE_CHECKING
 
 import torch
-from mjlab.tasks.velocity import mdp, velocity_env_cfg
-from mjlab.tasks.velocity.mdp import UniformVelocityCommandCfg
-from mjlab.utils.lab_api.math import matrix_from_quat
+from mjlab.utils.lab_api.math import quat_apply_inverse
 
 if TYPE_CHECKING:
-    from mjlab.entity import Entity
     from mjlab.envs import ManagerBasedRlEnv
     from mjlab.managers.scene_entity_config import SceneEntityCfg
 
@@ -18,22 +15,32 @@ if TYPE_CHECKING:
 # ---------------------------------------------------------------------------
 
 
-def ball_pos_rel_w(env: ManagerBasedRlEnv) -> torch.Tensor:
-    """Ball position relative to the robot root, in world frame."""
+def ball_pos_rel_b(env: ManagerBasedRlEnv) -> torch.Tensor:
+    """Ball position relative to the robot root, expressed in robot frame."""
     robot = env.scene["robot"]
     ball = env.scene["ball"]
 
-    return ball.data.root_link_pos_w - robot.data.root_link_pos_w
+    relative_pos_w = ball.data.root_link_pos_w - robot.data.root_link_pos_w
+
+    return quat_apply_inverse(robot.data.root_link_quat_w, relative_pos_w)
 
 
-def ball_lin_vel_w(env: ManagerBasedRlEnv) -> torch.Tensor:
-    """Ball linear velocity."""
-    return env.scene["ball"].data.root_link_lin_vel_w
+def ball_lin_vel_b(env: ManagerBasedRlEnv) -> torch.Tensor:
+    """Ball linear velocity, expressed in robot frame."""
+    robot = env.scene["robot"]
+    ball = env.scene["ball"]
+
+    ball_lin_vel_w = ball.data.root_link_lin_vel_w
+    return quat_apply_inverse(robot.data.root_link_quat_w, ball_lin_vel_w)
 
 
-def ball_ang_vel_w(env: ManagerBasedRlEnv) -> torch.Tensor:
-    """Ball angular velocity."""
-    return env.scene["ball"].data.root_link_ang_vel_w
+def ball_ang_vel_b(env: ManagerBasedRlEnv) -> torch.Tensor:
+    """Ball angular velocity, expressed in robot frame."""
+    robot = env.scene["robot"]
+    ball = env.scene["ball"]
+
+    ball_ang_vel_w = ball.data.root_link_ang_vel_w
+    return quat_apply_inverse(robot.data.root_link_quat_w, ball_ang_vel_w)
 
 
 # ---------------------------------------------------------------------------
