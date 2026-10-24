@@ -136,6 +136,7 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     cfg.rewards["upright"].weight = 2.0
     cfg.rewards["body_ang_vel"].weight = -0.05
     cfg.rewards["angular_momentum"].weight = 0.0
+    cfg.rewards["pose"].params["std_walking"][".*KFE"] = 0.45
 
     # -----------------------------------------------------------------------
     # Ball rewards
@@ -161,7 +162,7 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
     cfg.rewards["target_height"] = RewardTermCfg(
         func=mdp.target_root_height,
-        weight=1.0,
+        weight=1.5,
         params={
             "target_height": TARGET_ROOT_HEIGHT,
             "std": 0.10,
@@ -171,6 +172,25 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     cfg.rewards["ball_speed"] = RewardTermCfg(
         func=mdp.ball_speed_l2,
         weight=0.0,
+    )
+
+    KNEE_BODIES = (
+        "LF_SHANK",
+        "RF_SHANK",
+        "LH_SHANK",
+        "RH_SHANK",
+    )
+    cfg.rewards["knee_ball_proximity"] = RewardTermCfg(
+        func=mdp.knee_ball_proximity_penalty,
+        weight=-2.0,
+        params={
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                body_names=KNEE_BODIES,
+            ),
+            "ball_radius": BALL_RADIUS,
+            "min_clearance": 0.12,
+        },
     )
 
     # -----------------------------------------------------------------------
@@ -184,6 +204,17 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     cfg.metrics["yaw_tracking_error"] = MetricsTermCfg(func=mdp.yaw_tracking_error)
 
     cfg.metrics["ball_center_error"] = MetricsTermCfg(func=mdp.ball_center_error)
+
+    cfg.metrics["knee_clearance"] = MetricsTermCfg(
+        func=mdp.knee_clearance_proxy,
+        params={
+            "asset_cfg": SceneEntityCfg(
+                "robot",
+                body_names=KNEE_BODIES,
+            ),
+            "ball_radius": BALL_RADIUS,
+        },
+    )
 
     # -----------------------------------------------------------------------
     # Reset

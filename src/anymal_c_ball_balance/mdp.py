@@ -144,6 +144,39 @@ def ball_speed_l2(env: ManagerBasedRlEnv) -> torch.Tensor:
     return torch.sum(vel**2, dim=-1)
 
 
+def knee_clearance_proxy(
+    env: ManagerBasedRlEnv,
+    asset_cfg: SceneEntityCfg,
+    ball_radius: float,
+) -> torch.Tensor:
+    """Approximate knee clearance from the ball surface."""
+
+    robot = env.scene[asset_cfg.name]
+    ball = env.scene["ball"]
+
+    knee_pos = robot.data.body_link_pos_w[:, asset_cfg.body_ids, :]
+    ball_pos = ball.data.root_link_pos_w[:, None, :]
+
+    distance = torch.linalg.vector_norm(knee_pos - ball_pos, dim=-1)
+    clearance = distance - ball_radius
+
+    return clearance.min(dim=-1).values
+
+
+def knee_ball_proximity_penalty(
+    env: ManagerBasedRlEnv,
+    asset_cfg: SceneEntityCfg,
+    ball_radius: float,
+    min_clearance: float = 0.12,
+) -> torch.Tensor:
+    """Penalize knees approaching the ball."""
+
+    clearance = knee_clearance_proxy(env, asset_cfg, ball_radius)
+    violation = torch.clamp((min_clearance - clearance) / min_clearance, min=0.0)
+
+    return violation**2
+
+
 # ---------------------------------------------------------------------------
 # Terminations
 # ---------------------------------------------------------------------------
