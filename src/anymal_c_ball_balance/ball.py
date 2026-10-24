@@ -2,7 +2,7 @@ from pathlib import Path
 
 import mujoco
 
-BALL_RADIUS = 0.90
+BALL_RADIUS = 0.85
 BALL_MASS = 15.0
 BALL_FRICTION = (1.2, 0.01, 0.001)
 BALL_HOLD_LEVELS = (1.0, 0.5, 0.2, 0.05, 0.0)
