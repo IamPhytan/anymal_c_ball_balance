@@ -3,6 +3,7 @@
 from anymal_c_velocity.env_cfgs import anymal_c_flat_env_cfg
 from mjlab.entity import EntityCfg
 from mjlab.envs import ManagerBasedRlEnvCfg
+from mjlab.managers.curriculum_manager import CurriculumTermCfg
 from mjlab.managers.event_manager import EventTermCfg
 from mjlab.managers.metrics_manager import MetricsTermCfg
 from mjlab.managers.observation_manager import ObservationTermCfg
@@ -10,6 +11,7 @@ from mjlab.managers.reward_manager import RewardTermCfg
 from mjlab.managers.scene_entity_config import SceneEntityCfg
 from mjlab.managers.termination_manager import TerminationTermCfg
 from mjlab.sensor import ContactMatch, ContactSensorCfg
+from mjlab.tasks.velocity import mdp as velocity_mdp
 
 from . import mdp
 from .ball import BALL_RADIUS, get_ball_spec
@@ -61,7 +63,44 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
     twist.resampling_time_range = (4.0, 6.0)
 
+    # -----------------------------------------------------------------------
+    # Velocity curriculum
+    # -----------------------------------------------------------------------
+
     cfg.curriculum.pop("command_vel", None)
+    if not play:
+        cfg.curriculum["commmand_vel"] = CurriculumTermCfg(
+            func=velocity_mdp.commands_vel,
+            params={
+                "command_name": "twist",
+                "velocity_stages": [
+                    {
+                        "step": 0,
+                        "lin_vel_x": (-0.15, 0.15),
+                        "lin_vel_y": (-0.10, 0.10),
+                        "ang_vel_z": (-0.10, 0.10),
+                    },
+                    {
+                        "step": 2000 * 24,
+                        "lin_vel_x": (-0.20, 0.20),
+                        "lin_vel_y": (-0.12, 0.12),
+                        "ang_vel_z": (-0.12, 0.12),
+                    },
+                    {
+                        "step": 5000 * 24,
+                        "lin_vel_x": (-0.25, 0.25),
+                        "lin_vel_y": (-0.15, 0.15),
+                        "ang_vel_z": (-0.15, 0.15),
+                    },
+                    {
+                        "step": 8000 * 24,
+                        "lin_vel_x": (-0.30, 0.30),
+                        "lin_vel_y": (-0.20, 0.20),
+                        "ang_vel_z": (-0.20, 0.20),
+                    },
+                ],
+            },
+        )
 
     # -----------------------------------------------------------------------
     # Observations
