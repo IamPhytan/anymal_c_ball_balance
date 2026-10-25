@@ -25,6 +25,6 @@ def anymal_c_ball_balance_ppo_cfg() -> RslRlOnPolicyRunnerCfg:
             entropy_coef=0.01,
         ),
         experiment_name="anymal_c_ball_balance",
-        max_iterations=10_000,
+        max_iterations=30_000,
         wandb_project="mjlab-anymal-c-ball",
     )

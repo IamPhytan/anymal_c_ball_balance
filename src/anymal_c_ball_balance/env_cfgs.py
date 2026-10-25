@@ -49,19 +49,14 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
     twist.heading_command = False
     twist.ranges.heading = None
 
-    # Non-zero ranges required by the Viser command GUI.
-    twist.ranges.lin_vel_x = (-0.15, 0.15)
-    twist.ranges.lin_vel_y = (-0.10, 0.10)
-    twist.ranges.ang_vel_z = (-0.10, 0.10)
-
-    twist.rel_standing_envs = 0.5
+    twist.rel_standing_envs = 0.25
 
     # Disable the other command modes.
     twist.rel_world_envs = 0.0
     twist.rel_forward_envs = 0.0
     twist.init_velocity_prob = 0.0
 
-    twist.resampling_time_range = (4.0, 6.0)
+    twist.resampling_time_range = (6.0, 8.0)
 
     # -----------------------------------------------------------------------
     # Velocity curriculum
@@ -69,7 +64,7 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
 
     cfg.curriculum.pop("command_vel", None)
     if not play:
-        cfg.curriculum["commmand_vel"] = CurriculumTermCfg(
+        cfg.curriculum["command_vel"] = CurriculumTermCfg(
             func=velocity_mdp.commands_vel,
             params={
                 "command_name": "twist",
@@ -81,26 +76,49 @@ def anymal_c_ball_balance_env_cfg(play: bool = False) -> ManagerBasedRlEnvCfg:
                         "ang_vel_z": (-0.10, 0.10),
                     },
                     {
-                        "step": 2000 * 24,
-                        "lin_vel_x": (-0.20, 0.20),
+                        "step": 3000 * 24,
+                        "lin_vel_x": (-0.20, 0.25),
+                        "lin_vel_y": (-0.10, 0.10),
+                        "ang_vel_z": (-0.10, 0.10),
+                    },
+                    {
+                        "step": 6000 * 24,
+                        "lin_vel_x": (-0.20, 0.40),
                         "lin_vel_y": (-0.12, 0.12),
                         "ang_vel_z": (-0.12, 0.12),
                     },
                     {
-                        "step": 5000 * 24,
-                        "lin_vel_x": (-0.25, 0.25),
+                        "step": 10000 * 24,
+                        "lin_vel_x": (-0.25, 0.55),
+                        "lin_vel_y": (-0.15, 0.15),
+                        "ang_vel_z": (-0.12, 0.12),
+                    },
+                    {
+                        "step": 14000 * 24,
+                        "lin_vel_x": (-0.30, 0.70),
                         "lin_vel_y": (-0.15, 0.15),
                         "ang_vel_z": (-0.15, 0.15),
                     },
                     {
-                        "step": 8000 * 24,
-                        "lin_vel_x": (-0.30, 0.30),
-                        "lin_vel_y": (-0.20, 0.20),
-                        "ang_vel_z": (-0.20, 0.20),
+                        "step": 18000 * 24,
+                        "lin_vel_x": (-0.30, 0.85),
+                        "lin_vel_y": (-0.15, 0.15),
+                        "ang_vel_z": (-0.15, 0.15),
+                    },
+                    {
+                        "step": 22000 * 24,
+                        "lin_vel_x": (-0.35, 1.00),
+                        "lin_vel_y": (-0.15, 0.15),
+                        "ang_vel_z": (-0.15, 0.15),
                     },
                 ],
             },
         )
+    else:
+        # Full command range for evaluation
+        twist.ranges.lin_vel_x = (-0.35, 1.00)
+        twist.ranges.lin_vel_y = (-0.15, 0.15)
+        twist.ranges.ang_vel_z = (-0.15, 0.15)
 
     # -----------------------------------------------------------------------
     # Observations
