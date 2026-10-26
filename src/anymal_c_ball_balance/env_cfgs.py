@@ -18,10 +18,8 @@ from .ball import BALL_RADIUS, get_ball_spec
 
 FOOT_SITES = ("LF", "RF", "LH", "RH")
 
-# À calibrer visuellement au début.
+# Height of the robot wrt the center of the ball.
 ROBOT_HEIGHT_OFFSET = -0.10
-
-# Hauteur du root par rapport au centre du ballon.
 TARGET_ROOT_HEIGHT = BALL_RADIUS + 0.54 + ROBOT_HEIGHT_OFFSET
 
 
