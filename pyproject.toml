@@ -21,6 +21,9 @@ src = ["anymal_c_ball_balance"]
 [tool.ruff.lint]
 select = ["E4", "E7", "E9", "F", "I", "B"]
 
+[project.scripts]
+race = "anymal_c_ball_balance.scripts.race:main"
+
 [project.entry-points."mjlab.tasks"]
 anymal_c_ball_balance = "anymal_c_ball_balance"
 
